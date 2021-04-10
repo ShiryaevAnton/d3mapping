@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -73,7 +74,14 @@ func main() {
 		panic(err)
 	}
 
-	d3List := make([]d3map.D3List, 8)
+	fSimpl, err := os.ReadFile(simplPath)
+	if err != nil {
+		panic(err)
+	}
+
+	simplPathNew := strings.ReplaceAll(simplPath, ".smw", "") + "_UPDATE.smw"
+
+	d3List := make([]d3map.D3List, 1)
 
 	fmt.Println("\nConfig file: " + strings.ReplaceAll(configPath, "./", "") + " contains:\n")
 
@@ -85,25 +93,29 @@ func main() {
 		}
 		light := f.GetCellValue(sheetName, colomnLigth+strconv.Itoa(i))
 		shade := f.GetCellValue(sheetName, colomnShade+strconv.Itoa(i))
-		roomNumber := f.GetCellValue(sheetName, colomnRoomNumber+strconv.Itoa(i))
+		roomNumber, _ := strconv.Atoi(f.GetCellValue(sheetName, colomnRoomNumber+strconv.Itoa(i)))
 
 		newd3List := d3map.NewD3List(room, roomNumber, light, shade)
 
-		fmt.Println(newd3List)
+		//fmt.Println(newd3List)
 
-		d3List = append(d3List, *newd3List)
+		d3List = append(d3List, newd3List)
 	}
+
+	fmt.Println(d3List)
 
 	fmt.Println("---------------------------------------------------")
 
-	// test := d3map.NewD3Map(roomPrefix, 1, signalLightName, 1, suffixLightRaise, "Games", "Accents", "Raise")
+	resultString := string(fSimpl)
 
-	// file, err := os.ReadFile(simplPath)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	test := d3map.NewD3Map(roomPrefix, d3List[1].GetRoomNumber(), signalLightName, 1, suffixLightRaise, d3List[1].GetRoomName(), "Accents", "Raise")
 
-	// temp := []byte(test.Replace(string(file)))
-	// err = os.WriteFile("./test1.smw", temp, 0666)
+	resultString = test.Replace(resultString)
+
+	resultByte := []byte(resultString)
+
+	if err := os.WriteFile(simplPathNew, resultByte, 0666); err != nil {
+		panic(err)
+	}
 
 }

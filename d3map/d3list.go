@@ -8,12 +8,12 @@ import (
 
 type D3List struct {
 	roomName     string
-	roomNumber   string
+	roomNumber   int
 	listOfLights []string
 	listOfShades []string
 }
 
-func NewD3List(roomName string, roomNumber string, listOfLights string, listOfShades string) *D3List {
+func NewD3List(roomName string, roomNumber int, listOfLights string, listOfShades string) D3List {
 
 	var d3List D3List
 
@@ -24,18 +24,13 @@ func NewD3List(roomName string, roomNumber string, listOfLights string, listOfSh
 
 	temp = strings.ReplaceAll(listOfShades, " ", "_")
 	d3List.listOfShades = strings.Split(temp, "|")
-	roomNumberInit, _ := strconv.Atoi(roomNumber)
 
-	if roomNumberInit < 10 {
-		d3List.roomNumber = "0" + roomNumber
-	} else {
-		d3List.roomNumber = roomNumber
-	}
+	d3List.roomNumber = roomNumber
 
-	return &d3List
+	return d3List
 }
 
-func (d *D3List) String() string {
+func (d D3List) String() string {
 
 	var listOfLights, listOfShades string
 
@@ -47,6 +42,22 @@ func (d *D3List) String() string {
 		listOfShades += v + " "
 	}
 
-	return fmt.Sprintln("-----> Room" + d.roomNumber + ":" + d.roomName + " Lights:" + listOfLights + "Shades:" + listOfShades + "<-----")
+	return fmt.Sprintln("-----> Room" + strconv.Itoa(d.roomNumber) + ":" + d.roomName + " Lights:" + listOfLights + "Shades:" + listOfShades + "<-----")
 
+}
+
+func (d D3List) GetRoomName() string {
+	return d.roomName
+}
+
+func (d D3List) GetRoomNumber() int {
+	return d.roomNumber
+}
+
+func (d D3List) GetListOfLights() []string {
+	return d.listOfLights
+}
+
+func (d D3List) GetListOfShade() []string {
+	return d.listOfShades
 }

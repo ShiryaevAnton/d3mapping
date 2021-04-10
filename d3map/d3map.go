@@ -72,7 +72,7 @@ func (d *D3map) Replace(simplString string) string {
 		r, _ = regexp.Compile(regIO)
 		IOName := r.FindString(matchIO)
 		r, _ = regexp.Compile(matchIO)
-		simplString = r.ReplaceAllString(simplString, IOName+"="+d.numberPanel+" \n")
+		simplString = r.ReplaceAllString(simplString, IOName+"="+d.numberPanel+"\n")
 	}
 
 	return simplString
