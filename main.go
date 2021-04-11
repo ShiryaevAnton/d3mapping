@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ShiryaevAnton/d3mapping/d3map"
@@ -24,7 +27,8 @@ const (
 
 var sheetName string
 var colomnRoom string
-var colomnRoomNumber string
+
+//var colomnRoomNumber string
 var colomnLigth string
 var colomnShade string
 var startRow int
@@ -46,19 +50,19 @@ func init() {
 	flag.StringVar(&simplPath, "sp", "", "Path to simpl file")
 
 	flag.StringVar(&roomPrefix, "rp", "ROOM", "Prefix for signals: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
-	flag.StringVar(&signalLightName, "snl", "LIGHTING_LOAD", "Signal name for lights: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
+	flag.StringVar(&signalLightName, "snl", "PL_LIGHT", "Signal name for lights: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 	flag.StringVar(&suffixLightOn, "sol", "ON", "Suffix for light ON: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 	flag.StringVar(&suffixLightOnFb, "sofl", "ON_FB", "Suffix for light ON_FB: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 	flag.StringVar(&suffixLightOff, "sfl", "OFF", "Suffix for light OFF: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 	flag.StringVar(&suffixLightOffFb, "sffl", "OFF_FB", "Suffix for light OFF_FB: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
-	flag.StringVar(&suffixLightLevel, "sll", "ON", "Suffix for light LEVEL: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
-	flag.StringVar(&suffixLightLevelFb, "slfl", "ON_FB", "Suffix for light LEVEL_FB: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
+	flag.StringVar(&suffixLightLevel, "sll", "LVL", "Suffix for light LEVEL: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
+	flag.StringVar(&suffixLightLevelFb, "slfl", "LVL_FB", "Suffix for light LEVEL_FB: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 	flag.StringVar(&suffixLightRaise, "srl", "RAISE", "Suffix for light RAISE: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 	flag.StringVar(&suffixLightDim, "srfl", "DIM", "Suffix for light DIM: Prefix_RoomNumber_SignalName_SignalNumber_Suffix")
 
 	flag.StringVar(&sheetName, "sn", "PROJECTCONFIG", "Name of sheet")
 	flag.StringVar(&colomnRoom, "colr", "B", "Room's colomn")
-	flag.StringVar(&colomnRoomNumber, "colrn", "A", "Room's number")
+	//flag.StringVar(&colomnRoomNumber, "colrn", "A", "Room's number")
 	flag.StringVar(&colomnLigth, "coll", "L", "Light's colomn")
 	flag.StringVar(&colomnShade, "cols", "O", "Shade's colomn")
 	flag.IntVar(&startRow, "sr", 58, "Start row")
@@ -68,22 +72,42 @@ func init() {
 
 func main() {
 
-	f, err := excelize.OpenFile(configPath)
+	logName := "log" + strconv.FormatInt(time.Now().UTC().Unix(), 10) + ".txt"
 
+	fLog, err := os.OpenFile(logName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		panic(err)
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer fLog.Close()
+	wrt := io.MultiWriter(os.Stdout, fLog)
+	log.SetOutput(wrt)
+
+	f, err := excelize.OpenFile(configPath)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
 	}
 
 	fSimpl, err := os.ReadFile(simplPath)
 	if err != nil {
-		panic(err)
+		log.Fatalf("error opening file: %v", err)
 	}
+
+	var signalSuffixMap = make(map[string]string)
+
+	signalSuffixMap[panelSuffixLightOn] = suffixLightOn
+	signalSuffixMap[panelSuffixLightOnFb] = suffixLightOnFb
+	signalSuffixMap[panelSuffixLightOff] = suffixLightOff
+	signalSuffixMap[panelSuffixLightOffFb] = suffixLightOffFb
+	signalSuffixMap[panelSuffixLightRaise] = suffixLightRaise
+	signalSuffixMap[panelSuffixLightDim] = suffixLightDim
+	signalSuffixMap[panelSuffixLightLevel] = suffixLightLevel
+	signalSuffixMap[panelSuffixLightLevelFb] = suffixLightLevelFb
 
 	simplPathNew := strings.ReplaceAll(simplPath, ".smw", "") + "_UPDATE.smw"
 
-	d3List := make([]d3map.D3List, 1)
+	var d3List []d3map.D3List
 
-	fmt.Println("\nConfig file: " + strings.ReplaceAll(configPath, "./", "") + " contains:\n")
+	log.Println("\nConfig file: " + strings.ReplaceAll(configPath, "./", "") + " contains:\n")
 
 	for i := startRow; true; i++ {
 
@@ -93,29 +117,37 @@ func main() {
 		}
 		light := f.GetCellValue(sheetName, colomnLigth+strconv.Itoa(i))
 		shade := f.GetCellValue(sheetName, colomnShade+strconv.Itoa(i))
-		roomNumber, _ := strconv.Atoi(f.GetCellValue(sheetName, colomnRoomNumber+strconv.Itoa(i)))
 
-		newd3List := d3map.NewD3List(room, roomNumber, light, shade)
+		newd3List := d3map.NewD3List(room, i-startRow+1, light, shade)
 
-		//fmt.Println(newd3List)
+		fmt.Println(newd3List)
 
 		d3List = append(d3List, newd3List)
 	}
 
-	fmt.Println(d3List)
-
-	fmt.Println("---------------------------------------------------")
+	log.Println("Start to find and replace signals")
 
 	resultString := string(fSimpl)
 
-	test := d3map.NewD3Map(roomPrefix, d3List[1].GetRoomNumber(), signalLightName, 1, suffixLightRaise, d3List[1].GetRoomName(), "Accents", "Raise")
+	for _, d3 := range d3List {
+		for i, device := range d3.GetListOfLights() {
+			if device != "" {
+				for k, v := range signalSuffixMap {
+					d3mapping := d3map.NewD3Map(roomPrefix, d3.GetRoomNumber(), signalLightName, i+1,
+						v, d3.GetRoomName(), device, k)
 
-	resultString = test.Replace(resultString)
+					resultString = d3mapping.Replace(resultString)
+					log.Println(d3mapping)
+				}
+			}
+		}
+	}
 
 	resultByte := []byte(resultString)
 
 	if err := os.WriteFile(simplPathNew, resultByte, 0666); err != nil {
-		panic(err)
+		log.Fatalf("error writting file: %v", err)
 	}
 
+	log.Println("File: " + simplPathNew + " is created")
 }
