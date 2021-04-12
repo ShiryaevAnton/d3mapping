@@ -1,0 +1,55 @@
+[SheetConfig]
+    sheet_name              = "PROJECTCONFIG"
+    colomn_room             = "B"
+    colomn_room_number      = "A"
+    colomn_light            = "L"
+    colomn_light_type       = "K"
+    colomn_shade            = "O"
+	colomn_shade_type		= "N"
+    start_row               = 58
+
+[Prefix]
+    room_prefix             = "ROOM"  
+
+[KeypanelLight]
+	on         				= "On"
+	on_fb      				= "On_fb"
+	off        				= "Off"
+	off_fb     				= "Off_fb"
+	raise      				= "Raise"
+	dim        				= "Lower"
+	level      				= "Level"
+	level_fb   				= "Current_Level" 
+
+[CoreLight]
+    signal_name     		= "PL_LIGHT"
+	on         				= "ON"
+	on_fb      				= "ON_FB"
+	off        				= "OFF"
+	off_fb     				= "OFF_FB"
+	raise      				= "RAISE"
+	dim        				= "DIM"
+	level      				= "LVL"
+	level_fb   				= "LVL_FB"
+
+[KeypanelShade]
+	open 					= "Open"
+	open_fb					= "Open_fb"
+	close					= "Close"
+	close_fb				= "Close_fb"
+	stop					= "Stop"
+	stop_fb					= "Stop_fb"
+	level					= "level"
+	level_fb				= "Current_level"
+
+[CoreShade]
+	signal_name				= "PL_SHADE"
+	open 					= "OPEN"
+	open_fb					= "OPEN_FB"
+	close					= "CLOSE"
+	close_fb				= "CLOSE_FB"
+	stop					= "STOP"
+	stop_fb					= "STOP_FB"
+	level					= "LVL"
+	level_fb				= "LVL_FB"
+
