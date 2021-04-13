@@ -58,19 +58,6 @@ func main() {
 		log.Fatalf("error opening file: %v", err)
 	}
 
-	var signalLightDimmerMap = make(map[string]string)
-	var signalLightMap = make(map[string]string)
-
-	signalLightMap[c.KeypanelLight.On] = c.CoreLight.On
-	signalLightMap[c.KeypanelLight.OnFb] = c.CoreLight.OnFb
-	signalLightMap[c.KeypanelLight.Off] = c.CoreLight.Off
-	signalLightMap[c.KeypanelLight.OffFb] = c.CoreLight.OffFb
-
-	signalLightDimmerMap[c.KeypanelLight.Raise] = c.CoreLight.Raise
-	signalLightDimmerMap[c.KeypanelLight.Dim] = c.CoreLight.Dim
-	signalLightDimmerMap[c.KeypanelLight.Level] = c.CoreLight.Level
-	signalLightDimmerMap[c.KeypanelLight.LevelFb] = c.CoreLight.LevelFb
-
 	simplPathNew := strings.ReplaceAll(simplPath, ".smw", "") + "_UPDATE.smw"
 
 	var d3List []d3map.D3List
@@ -85,14 +72,17 @@ func main() {
 		}
 		light := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnLight+strconv.Itoa(i))
 		lightType := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnLightType+strconv.Itoa(i))
+		d3ListLight := d3map.NewD3List(room, i-c.SheetConfig.StartRow+1, light, lightType, "light")
+		d3List = append(d3List, d3ListLight)
+
 		shade := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnShade+strconv.Itoa(i))
 		shadeType := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnShadeType+strconv.Itoa(i))
+		d3ListShade := d3map.NewD3List(room, i-c.SheetConfig.StartRow+1, shade, shadeType, "shade")
+		d3List = append(d3List, d3ListShade)
 
-		newd3List := d3map.NewD3List(room, i-c.SheetConfig.StartRow+1, light, lightType, shade, shadeType)
+		log.Println(d3ListLight)
+		log.Println(d3ListShade)
 
-		log.Println(newd3List)
-
-		d3List = append(d3List, newd3List)
 	}
 
 	log.Println("Start to find and replace signals")
@@ -100,35 +90,46 @@ func main() {
 	resultString := string(fSimpl)
 
 	for _, d3 := range d3List {
-		for i, device := range d3.GetListOfLights() {
+		for i, device := range d3.GetDevices() {
 			if device.GetName() != "" {
-				for k, v := range signalLightMap {
+				for _, signal := range c.Signals {
+
+					prefix := c.CoreSignal.Prefix
+					if signal.OverrideRoomPrefix != "" {
+						prefix = signal.OverrideRoomPrefix
+					}
+
+					signalName := c.CoreSignal.Name
+					if signal.OverrideCoreName != "" {
+						signalName = signal.OverrideCoreName
+					}
+
+					roomName := d3.GetRoomName()
+					if signal.OverridePanelName != "" {
+						roomName = signal.OverridePanelName
+					}
+
+					if signal.SystemType != device.GetSystemType() {
+						continue
+					}
+
+					if signal.DeviceType != "C" {
+						if signal.DeviceType != device.GetDeiveType() {
+							continue
+						}
+					}
+
 					d3mapping := d3map.NewD3Map(
-						c.Prefix.RoomPrefix,
+						prefix,
 						d3.GetRoomNumber(),
-						c.CoreLight.SignalName,
+						signalName+signal.CoreSignalModif,
 						i+1,
-						v,
-						d3.GetRoomName(),
-						device.GetName(),
-						k)
+						signal.CoreSuffix,
+						roomName,
+						device.GetName()+signal.PanelSignalModif,
+						signal.PanelSuffix)
 
 					resultString = Replace(resultString, d3mapping)
-				}
-				if device.GetType() == "D" {
-					for k, v := range signalLightDimmerMap {
-						d3mapping := d3map.NewD3Map(
-							c.Prefix.RoomPrefix,
-							d3.GetRoomNumber(),
-							c.CoreLight.SignalName,
-							i+1,
-							v,
-							d3.GetRoomName(),
-							device.GetName(),
-							k)
-
-						resultString = Replace(resultString, d3mapping)
-					}
 				}
 			}
 		}
@@ -152,7 +153,7 @@ func Replace(resultString string, d3mapping *d3map.D3map) string {
 		log.Fatalf("Find and replace error: %v", err)
 	}
 	if isSuccess {
-		log.Printf("Signal SUCCESSFUL found and replaced: %v", d3mapping)
+		log.Printf("Signal is SUCCESSFUL found and replaced: %v", d3mapping)
 	} else {
 		log.Printf("Signal DID NOT FIND: %v", d3mapping)
 	}

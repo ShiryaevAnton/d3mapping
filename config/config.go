@@ -11,39 +11,25 @@ type SheetConfig struct {
 	StartRow         int    `toml:"start_row"`
 }
 
-type Prefix struct {
-	RoomPrefix string `toml:"room_prefix"`
+type CoreSignal struct {
+	Prefix string `toml:"prefix"`
+	Name   string `toml:"name"`
 }
 
-type LightSuffix struct {
-	SignalName string `toml:"signal_name"`
-	On         string `toml:"on"`
-	OnFb       string `toml:"on_fb"`
-	Off        string `toml:"off"`
-	OffFb      string `toml:"off_fb"`
-	Raise      string `toml:"raise"`
-	Dim        string `toml:"dim"`
-	Level      string `toml:"level"`
-	LevelFb    string `toml:"level_fb"`
-}
-
-type ShadeSuffix struct {
-	SignalName string `toml:"signal_name"`
-	Open       string `toml:"open"`
-	OpenFb     string `toml:"open_fb"`
-	Close      string `toml:"close"`
-	CloseFb    string `toml:"close_fb"`
-	Stop       string `toml:"stop"`
-	StopFb     string `toml:"stop_fb"`
-	Level      string `toml:"level"`
-	LevelFb    string `toml:"level_fb"`
+type Signal struct {
+	OverrideCoreName   string `toml:"override_core_name"`
+	OverrideRoomPrefix string `toml:"override_room_prefix"`
+	OverridePanelName  string `toml:"override_panel_name"`
+	SystemType         string `toml:"system_type"`
+	DeviceType         string `toml:"device_type"`
+	PanelSignalModif   string `toml:"panel_signal_modif"`
+	CoreSignalModif    string `toml:"core_signal_modif"`
+	CoreSuffix         string `toml:"core_suffix"`
+	PanelSuffix        string `toml:"panel_suffix"`
 }
 
 type Config struct {
-	SheetConfig   SheetConfig
-	Prefix        Prefix
-	KeypanelLight LightSuffix
-	CoreLight     LightSuffix
-	KeypanelShade ShadeSuffix
-	CoreShade     ShadeSuffix
+	SheetConfig SheetConfig
+	CoreSignal  CoreSignal
+	Signals     []Signal
 }

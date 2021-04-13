@@ -6,47 +6,31 @@ import (
 	"strings"
 )
 
-type Light struct {
-	name  string
-	types string
-}
-
-type Shade struct {
-	name  string
-	types string
+type Device struct {
+	name        string
+	deviceTypes string
+	systemType  string
 }
 
 type D3List struct {
 	roomName   string
 	roomNumber int
-	lights     []Light
-	shades     []Shade
+	devices    []Device
 }
 
-func NewD3List(roomName string, roomNumber int, listOfLights string,
-	listOfLightsType string, listOfShades string, listOfShadesType string) D3List {
+func NewD3List(roomName string, roomNumber int, listOfDevice string, listOfDevicesType string, systemType string) D3List {
 
 	var d3List D3List
 
 	d3List.roomName = strings.ReplaceAll(roomName, " ", "_")
 
-	temp := strings.ReplaceAll(listOfLights, " ", "_")
-	tempListOfLights := strings.Split(temp, "|")
-	tempListOfLightsType := strings.Split(listOfLightsType, "")
+	temp := strings.ReplaceAll(listOfDevice, " ", "_")
+	tempListOfDevices := strings.Split(temp, "|")
+	tempListOfDevicesType := strings.Split(listOfDevicesType, "")
 
-	temp = strings.ReplaceAll(listOfShades, " ", "_")
-	tempListOfShades := strings.Split(temp, "|")
-	tempListOfShadesType := strings.Split(listOfShadesType, "")
-
-	for i, light := range tempListOfLights {
-		if i < len(tempListOfLightsType) {
-			d3List.lights = append(d3List.lights, Light{name: light, types: tempListOfLightsType[i]})
-		}
-	}
-
-	for i, shade := range tempListOfShades {
-		if i < len(tempListOfShadesType) {
-			d3List.shades = append(d3List.shades, Shade{name: shade, types: tempListOfShadesType[i]})
+	for i, device := range tempListOfDevices {
+		if i < len(tempListOfDevicesType) {
+			d3List.devices = append(d3List.devices, Device{name: device, deviceTypes: tempListOfDevicesType[i], systemType: systemType})
 		}
 	}
 
@@ -57,17 +41,13 @@ func NewD3List(roomName string, roomNumber int, listOfLights string,
 
 func (d D3List) String() string {
 
-	var listOfLights, listOfShades string
+	var listOfDeivces string
 
-	for _, v := range d.lights {
-		listOfLights += "{" + "Name:" + v.name + " " + "Type:" + v.types + "}, "
+	for _, v := range d.devices {
+		listOfDeivces += "{" + v.systemType + ": " + v.name + " " + "type:" + v.deviceTypes + "}, "
 	}
 
-	for _, v := range d.shades {
-		listOfShades += "{" + "Name:" + v.name + " " + "Type:" + v.types + "}, "
-	}
-
-	return fmt.Sprintln("-----> Room" + strconv.Itoa(d.roomNumber) + ":" + d.roomName + " Lights:" + listOfLights + " " + "Shades:" + listOfShades + "<-----")
+	return fmt.Sprintln("-----> Room" + strconv.Itoa(d.roomNumber) + "-" + d.roomName + ": " + listOfDeivces + "<-----")
 
 }
 
@@ -79,26 +59,18 @@ func (d D3List) GetRoomNumber() int {
 	return d.roomNumber
 }
 
-func (d D3List) GetListOfLights() []Light {
-	return d.lights
+func (d D3List) GetDevices() []Device {
+	return d.devices
 }
 
-func (d D3List) GetListOfShade() []Shade {
-	return d.shades
+func (d Device) GetName() string {
+	return d.name
 }
 
-func (l Light) GetName() string {
-	return l.name
+func (d Device) GetDeiveType() string {
+	return d.deviceTypes
 }
 
-func (l Light) GetType() string {
-	return l.types
-}
-
-func (l Shade) GetName() string {
-	return l.name
-}
-
-func (l Shade) GetType() string {
-	return l.types
+func (d Device) GetSystemType() string {
+	return d.systemType
 }
