@@ -80,12 +80,11 @@ func main() {
 		d3ListShade := d3map.NewD3List(room, i-c.SheetConfig.StartRow+1, shade, shadeType, "shade")
 		d3List = append(d3List, d3ListShade)
 
-		log.Println(d3ListLight)
-		log.Println(d3ListShade)
-
 	}
 
-	log.Println("Start to find and replace signals")
+	log.Println(d3List)
+
+	log.Println("Start searching signals")
 
 	resultString := string(fSimpl)
 
@@ -150,12 +149,12 @@ func Replace(resultString string, d3mapping *d3map.D3map) string {
 	var err error
 	resultString, isSuccess, err = d3mapping.Replace(resultString)
 	if err != nil {
-		log.Fatalf("Find and replace error: %v", err)
+		log.Fatalf("Searching error: %v", err)
 	}
 	if isSuccess {
-		log.Printf("Signal is SUCCESSFUL found and replaced: %v", d3mapping)
+		log.Printf("%v: SUCCESS", d3mapping)
 	} else {
-		log.Printf("Signal DID NOT FIND: %v", d3mapping)
+		log.Printf("%v: FAIL", d3mapping)
 	}
 
 	return resultString
