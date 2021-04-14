@@ -32,7 +32,9 @@ func NewD3Map(prefixCore string, roomNumber int, signalNameCore string,
 		d3Map.keyCore = prefixCore + "_" + strconv.Itoa(roomNumber) + "_" + signalNameCore
 	}
 
-	if signalNumberCore < 10 {
+	if signalNumberCore < 0 {
+		d3Map.keyCore += "_" + suffixCore
+	} else if signalNumberCore > 0 && signalNumberCore < 10 {
 		d3Map.keyCore += "_" + "0" + strconv.Itoa(signalNumberCore) + "_" + suffixCore
 	} else {
 		d3Map.keyCore += "_" + strconv.Itoa(signalNumberCore) + "_" + suffixCore

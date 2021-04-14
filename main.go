@@ -87,6 +87,7 @@ func main() {
 	log.Println("Start searching signals")
 
 	resultString := string(fSimpl)
+	compliteMap := make(map[string]bool)
 
 	for _, d3 := range d3List {
 		for i, device := range d3.GetDevices() {
@@ -108,6 +109,16 @@ func main() {
 						roomName = signal.OverridePanelName
 					}
 
+					deviceName := device.GetName()
+					if signal.OverrideDeviceName != "" {
+						deviceName = signal.OverrideDeviceName
+					}
+
+					signalNumber := i + 1
+					if signal.RoomLevelSignal < 0 {
+						signalNumber = signal.RoomLevelSignal
+					}
+
 					if signal.SystemType != device.GetSystemType() {
 						continue
 					}
@@ -122,11 +133,17 @@ func main() {
 						prefix,
 						d3.GetRoomNumber(),
 						signalName+signal.CoreSignalModif,
-						i+1,
+						signalNumber,
 						signal.CoreSuffix,
 						roomName,
-						device.GetName()+signal.PanelSignalModif,
+						deviceName+signal.PanelSignalModif,
 						signal.PanelSuffix)
+
+					if compliteMap[d3mapping.String()] {
+						continue
+					} else {
+						compliteMap[d3mapping.String()] = true
+					}
 
 					resultString = Replace(resultString, d3mapping)
 				}
@@ -152,9 +169,9 @@ func Replace(resultString string, d3mapping *d3map.D3map) string {
 		log.Fatalf("Searching error: %v", err)
 	}
 	if isSuccess {
-		log.Printf("%v: SUCCESS", d3mapping)
+		log.Printf("SUCCESS: %v", d3mapping)
 	} else {
-		log.Printf("%v: FAIL", d3mapping)
+		log.Printf("FAIL: %v", d3mapping)
 	}
 
 	return resultString

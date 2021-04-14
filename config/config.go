@@ -20,6 +20,8 @@ type Signal struct {
 	OverrideCoreName   string `toml:"override_core_name"`
 	OverrideRoomPrefix string `toml:"override_room_prefix"`
 	OverridePanelName  string `toml:"override_panel_name"`
+	OverrideDeviceName string `toml:"override_device_name"`
+	RoomLevelSignal    int    `toml:"room_level_signal"`
 	SystemType         string `toml:"system_type"`
 	DeviceType         string `toml:"device_type"`
 	PanelSignalModif   string `toml:"panel_signal_modif"`
