@@ -11,7 +11,7 @@ type SheetConfig struct {
 	StartRow         int    `toml:"start_row"`
 }
 
-type CoreSignal struct {
+type NameConstructor struct {
 	Prefix string `toml:"prefix"`
 	Name   string `toml:"name"`
 }
@@ -31,7 +31,8 @@ type Signal struct {
 }
 
 type Config struct {
-	SheetConfig SheetConfig
-	CoreSignal  CoreSignal
-	Signals     []Signal
+	SheetConfig   SheetConfig
+	CoreSignal    NameConstructor
+	Signals       []Signal
+	PanelRoomName NameConstructor
 }

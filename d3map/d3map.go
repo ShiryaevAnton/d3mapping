@@ -8,17 +8,20 @@ import (
 )
 
 const (
-	regSignalPrefix = "H=([0-9]+).\\nNm="
-	regSignalNumber = "([0-9]+)"
-	regIONumber     = "[IO]([0-9]+)="
-	regIO           = "[IO]([0-9]+)"
+	regSignalPrefix      = "H=([0-9]+).\\nNm="
+	regAnyNumberAnyTime  = "([0-9]+)"
+	regIONumber          = "[IO]([0-9]+)="
+	regIO                = "[IO]([0-9]+)"
+	regONumber           = "O([0-9]+)="
+	regTitle             = "PrNm="
+	regAnyLetter         = "[A-Za-z]"
+	regAnySymbolAnyTime  = "(.+)"
+	regAnySymbolAnyTimeN = "(.+)\\n"
 )
 
 type D3map struct {
-	keyPanel    string
-	keyCore     string
-	numberPanel string
-	numberCore  string
+	keyPanel string
+	keyCore  string
 }
 
 func NewD3Map(prefixCore string, roomNumber int, signalNameCore string,
@@ -42,9 +45,6 @@ func NewD3Map(prefixCore string, roomNumber int, signalNameCore string,
 
 	d3Map.keyPanel = "\\[" + roomNamePanel + "\\]" + "\\[" + deviceNamePanel + "\\]" + suffixPanel
 
-	d3Map.numberCore = "0"
-	d3Map.numberPanel = "0"
-
 	return &d3Map
 }
 
@@ -55,55 +55,86 @@ func (d *D3map) String() string {
 
 func (d *D3map) Replace(simplString string) (string, bool, error) {
 
-	r, err := regexp.Compile(regSignalPrefix + d.keyPanel + ".\\n")
+	numberCore, err := getNumber(d.keyCore, simplString)
 	if err != nil {
 		return "", false, err
 	}
-	matchString := r.FindString(simplString)
-
-	r, err = regexp.Compile(regSignalNumber)
-	if err != nil {
-		return "", false, err
-	}
-	d.numberPanel = r.FindString(matchString)
-	if d.numberPanel == "" {
+	if numberCore == "" {
 		return simplString, false, nil
 	}
 
-	r, err = regexp.Compile(regSignalPrefix + d.keyCore + ".\\n")
+	numberPanel, err := getNumber(d.keyPanel, simplString)
 	if err != nil {
 		return "", false, err
 	}
-	matchString = r.FindString(simplString)
-	r, err = regexp.Compile(regSignalNumber)
-	if err != nil {
-		return "", false, err
-	}
-	d.numberCore = r.FindString(matchString)
-	if d.numberCore == "" {
+	if numberPanel == "" {
 		return simplString, false, nil
 	}
 
-	r, err = regexp.Compile(regIONumber + d.numberCore + ".\\n")
+	listOfMatchIO, err := getListOfIO(regIONumber, numberCore, simplString)
 	if err != nil {
 		return "", false, err
 	}
-
-	listOfMatchIO := r.FindAllString(simplString, -1)
 
 	for _, matchIO := range listOfMatchIO {
 
-		r, err = regexp.Compile(regIO)
+		IOName, err := getIOName(matchIO)
 		if err != nil {
 			return "", false, err
 		}
-		IOName := r.FindString(matchIO)
-		r, err = regexp.Compile(matchIO)
+		r, err := regexp.Compile(matchIO)
 		if err != nil {
 			return "", false, err
 		}
-		simplString = r.ReplaceAllString(simplString, IOName+"="+d.numberPanel+"\n")
+		simplString = r.ReplaceAllString(simplString, IOName+"="+numberPanel+"\n")
 	}
 
 	return simplString, true, nil
+}
+
+func ReplaceTitle(simplString string, originalTitle string, replaceTitle string) (string, error) {
+
+	r, err := regexp.Compile(regTitle + originalTitle + ".\\n")
+	if err != nil {
+		return "", err
+	}
+
+	simplString = r.ReplaceAllString(simplString, replaceTitle)
+
+	return simplString, nil
+}
+
+func getListOfIO(prefix string, root string, simplString string) ([]string, error) {
+
+	r, err := regexp.Compile(prefix + root + ".\\n")
+	if err != nil {
+		return nil, err
+	}
+	return r.FindAllString(simplString, -1), nil
+}
+
+func getIOName(matchIO string) (string, error) {
+
+	r, err := regexp.Compile(regIO)
+	if err != nil {
+		return "", err
+	}
+	return r.FindString(matchIO), nil
+}
+
+func getNumber(root string, simplString string) (string, error) {
+
+	r, err := regexp.Compile(regSignalPrefix + root + ".\\n")
+	if err != nil {
+		return "", err
+	}
+
+	matchString := r.FindString(simplString)
+
+	r, err = regexp.Compile(regAnyNumberAnyTime)
+	if err != nil {
+		return "", err
+	}
+
+	return r.FindString(matchString), nil
 }

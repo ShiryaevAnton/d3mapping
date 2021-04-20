@@ -12,6 +12,10 @@
     prefix	= "ROOM"
 	name = "PL_"
 
+[PanelRoomName]
+    prefix	= "Room"
+	name = "Name"
+
 # [[Signals]]
 # 	override_room_prefix = ""
 # 	override_core_name = ""
@@ -72,30 +76,30 @@
 # 	panel_signal_modif = ""
 # 	core_suffix = "DIM"
 # 	panel_suffix = "Lower"
-[[Signals]]
-	override_room_prefix = ""
-	override_core_name = ""
-	override_panel_name = ""
-	override_device_name = ""
-	room_level_signal = 0
-	system_type = "light"
-	device_type = "C"
-	core_signal_modif = "LIGHT"
-	panel_signal_modif = ""
-	core_suffix = "LVL"
-	panel_suffix = "Level"
-[[Signals]]
-	override_room_prefix = ""
-	override_core_name = ""
-	override_panel_name = ""
-	override_device_name = ""
-	room_level_signal = 0
-	system_type = "light"
-	device_type = "D"
-	core_signal_modif = "LIGHT"
-	panel_signal_modif = "_dimmer"
-	core_suffix = "LVL_FB"
-	panel_suffix = "Current_Level"
+# [[Signals]]
+# 	override_room_prefix = ""
+# 	override_core_name = ""
+# 	override_panel_name = ""
+# 	override_device_name = ""
+# 	room_level_signal = 0
+# 	system_type = "light"
+# 	device_type = "C"
+# 	core_signal_modif = "LIGHT"
+# 	panel_signal_modif = ""
+# 	core_suffix = "LVL"
+# 	panel_suffix = "Level"
+# [[Signals]]
+# 	override_room_prefix = ""
+# 	override_core_name = ""
+# 	override_panel_name = ""
+# 	override_device_name = ""
+# 	room_level_signal = 0
+# 	system_type = "light"
+# 	device_type = "D"
+# 	core_signal_modif = "LIGHT"
+# 	panel_signal_modif = "_dimmer"
+# 	core_suffix = "LVL_FB"
+# 	panel_suffix = "Current_Level"
 # [[Signals]]
 # 	override_room_prefix = ""
 # 	override_core_name = ""
@@ -180,15 +184,39 @@
 # 	panel_signal_modif = ""
 # 	core_suffix = "LVL_FB"
 # 	panel_suffix = "Current_level"
-[[Signals]]
-	override_room_prefix = ""
-	override_core_name = ""
-	override_panel_name = ""
-	override_device_name = "Lighting_Scene_2"
-	room_level_signal = -1
-	system_type = "light"
-	device_type = "C"
-	core_signal_modif = "LIGHT"
-	panel_signal_modif = ""
-	core_suffix = "SCENE_02"
-	panel_suffix = "Recall"
+# [[Signals]]
+# 	override_room_prefix = ""
+# 	override_core_name = ""
+# 	override_panel_name = ""
+# 	override_device_name = "Lighting_Scene_1"
+# 	room_level_signal = -1
+# 	system_type = "light"
+# 	device_type = "C"
+# 	core_signal_modif = "LIGHT"
+# 	panel_signal_modif = ""
+# 	core_suffix = "SCENE_01"
+# 	panel_suffix = "Recall"
+# [[Signals]]
+# 	override_room_prefix = ""
+# 	override_core_name = ""
+# 	override_panel_name = ""
+# 	override_device_name = "Lighting_Scene_2"
+# 	room_level_signal = -1
+# 	system_type = "light"
+# 	device_type = "C"
+# 	core_signal_modif = "LIGHT"
+# 	panel_signal_modif = ""
+# 	core_suffix = "SCENE_02"
+# 	panel_suffix = "Recall"
+# [[Signals]]
+# 	override_room_prefix = ""
+# 	override_core_name = ""
+# 	override_panel_name = ""
+# 	override_device_name = "Lighting_Scene_3"
+# 	room_level_signal = -1
+# 	system_type = "light"
+# 	device_type = "C"
+# 	core_signal_modif = "LIGHT"
+# 	panel_signal_modif = ""
+# 	core_suffix = "SCENE_03"
+# 	panel_suffix = "Recall"

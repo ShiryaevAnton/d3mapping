@@ -12,11 +12,14 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ShiryaevAnton/d3mapping/config"
 	"github.com/ShiryaevAnton/d3mapping/d3map"
+	"github.com/ShiryaevAnton/d3mapping/room"
 	"github.com/pelletier/go-toml"
 )
 
 var simplPath string
 var configPath string
+var d3Path string
+var mode string
 
 var c config.Config
 
@@ -31,6 +34,8 @@ func init() {
 
 	flag.StringVar(&configPath, "cp", "", "Path to config file")
 	flag.StringVar(&simplPath, "sp", "", "Path to simpl file")
+	flag.StringVar(&d3Path, "dp", "", "Path to d3 simpl program")
+	flag.StringVar(&mode, "m", "all", "Mode")
 
 	flag.Parse()
 }
@@ -54,6 +59,11 @@ func main() {
 	}
 
 	fSimpl, err := os.ReadFile(simplPath)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+
+	fD3Simpl, err := os.ReadFile(d3Path)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
@@ -82,11 +92,12 @@ func main() {
 
 	}
 
-	log.Println(d3List)
+	//log.Println(d3List)
 
-	log.Println("Start searching signals")
+	//log.Println("Start searching signals")
 
 	resultString := string(fSimpl)
+	d3string := string(fD3Simpl)
 	compliteMap := make(map[string]bool)
 
 	for _, d3 := range d3List {
@@ -151,13 +162,24 @@ func main() {
 		}
 	}
 
+	// roomNames, err := room.GetRoomName(d3string)
+	// if err != nil {
+	// 	log.Fatalf("error pulling room names: %v", err)
+	// }
+
+	// for _, roomName := range roomNames {
+	// 	room.GetRooms(roomName, d3string)
+	// }
+
+	room.GetRooms("Bedroom_1", d3string)
+
 	resultByte := []byte(resultString)
 
 	if err := os.WriteFile(simplPathNew, resultByte, 0666); err != nil {
 		log.Fatalf("error writting file: %v", err)
 	}
 
-	log.Println("File: " + simplPathNew + " is created")
+	//log.Println("File: " + simplPathNew + " is created")
 }
 
 func Replace(resultString string, d3mapping *d3map.D3map) string {
