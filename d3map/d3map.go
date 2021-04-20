@@ -5,18 +5,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/ShiryaevAnton/d3mapping/utility"
 )
 
 const (
-	regSignalPrefix      = "H=([0-9]+).\\nNm="
-	regAnyNumberAnyTime  = "([0-9]+)"
-	regIONumber          = "[IO]([0-9]+)="
-	regIO                = "[IO]([0-9]+)"
-	regONumber           = "O([0-9]+)="
-	regTitle             = "PrNm="
-	regAnyLetter         = "[A-Za-z]"
-	regAnySymbolAnyTime  = "(.+)"
-	regAnySymbolAnyTimeN = "(.+)\\n"
+	regIONumber = "[IO]([0-9]+)="
+
+	regTitle = "PrNm="
 )
 
 type D3map struct {
@@ -55,7 +51,7 @@ func (d *D3map) String() string {
 
 func (d *D3map) Replace(simplString string) (string, bool, error) {
 
-	numberCore, err := getNumber(d.keyCore, simplString)
+	numberCore, err := utility.GetNumber(d.keyCore, simplString)
 	if err != nil {
 		return "", false, err
 	}
@@ -63,7 +59,7 @@ func (d *D3map) Replace(simplString string) (string, bool, error) {
 		return simplString, false, nil
 	}
 
-	numberPanel, err := getNumber(d.keyPanel, simplString)
+	numberPanel, err := utility.GetNumber(d.keyPanel, simplString)
 	if err != nil {
 		return "", false, err
 	}
@@ -71,14 +67,14 @@ func (d *D3map) Replace(simplString string) (string, bool, error) {
 		return simplString, false, nil
 	}
 
-	listOfMatchIO, err := getListOfIO(regIONumber, numberCore, simplString)
+	listOfMatchIO, err := utility.GetListOfIO(regIONumber, numberCore, simplString)
 	if err != nil {
 		return "", false, err
 	}
 
 	for _, matchIO := range listOfMatchIO {
 
-		IOName, err := getIOName(matchIO)
+		IOName, err := utility.GetIOName(matchIO)
 		if err != nil {
 			return "", false, err
 		}
@@ -102,39 +98,4 @@ func ReplaceTitle(simplString string, originalTitle string, replaceTitle string)
 	simplString = r.ReplaceAllString(simplString, replaceTitle)
 
 	return simplString, nil
-}
-
-func getListOfIO(prefix string, root string, simplString string) ([]string, error) {
-
-	r, err := regexp.Compile(prefix + root + ".\\n")
-	if err != nil {
-		return nil, err
-	}
-	return r.FindAllString(simplString, -1), nil
-}
-
-func getIOName(matchIO string) (string, error) {
-
-	r, err := regexp.Compile(regIO)
-	if err != nil {
-		return "", err
-	}
-	return r.FindString(matchIO), nil
-}
-
-func getNumber(root string, simplString string) (string, error) {
-
-	r, err := regexp.Compile(regSignalPrefix + root + ".\\n")
-	if err != nil {
-		return "", err
-	}
-
-	matchString := r.FindString(simplString)
-
-	r, err = regexp.Compile(regAnyNumberAnyTime)
-	if err != nil {
-		return "", err
-	}
-
-	return r.FindString(matchString), nil
 }

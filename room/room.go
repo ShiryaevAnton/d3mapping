@@ -1,21 +1,16 @@
 package room
 
 import (
-	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/ShiryaevAnton/d3mapping/utility"
 )
 
 const (
-	regAnyLetter         = "[A-Za-z]"
-	regAnySymbolAnyTime  = "(.+)"
-	regAnySymbolAnyTimeN = "(.+)\\n"
-	regRoomName          = "Cmn1=Generate Room Name Signals.\\n"
-	regDeviceName        = "Cmn1=Generate Device Name Signals.\\n"
-	allRoomLigths        = "All_Room_Lights"
-	dimmer               = "dimmer"
-	equipment            = "Equipment"
+	regRoomName   = "Cmn1=Generate Room Name Signals.\\n"
+	regDeviceName = "Cmn1=Generate Device Name Signals.\\n"
+	equipment     = "Equipment"
 )
 
 type device struct {
@@ -34,7 +29,7 @@ func GetRoomName(simplString string) ([]string, error) {
 
 	var roomNames []string
 
-	roomNameString, err := getNameString(regRoomName, simplString)
+	roomNameString, err := utility.GetNameString(regRoomName, simplString)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +37,7 @@ func GetRoomName(simplString string) ([]string, error) {
 	i := 1
 
 	for {
-		pName, err := getName(strconv.Itoa(i), roomNameString)
+		pName, err := utility.GetName(strconv.Itoa(i), roomNameString)
 		if err != nil {
 			return nil, err
 		}
@@ -67,32 +62,15 @@ func GetRooms(roomName string, simplString string) (*Room, error) {
 
 	var room *Room
 
-	// deviceNameString, err := getNameString(regDeviceName, simplString)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	//[Bedroom_1][Shade_1]Name
-
-	//r, _ := regexp.Compile("\\[Bedroom_1\\]\\[Shade_1\\]Name")
-	r, err := regexp.Compile("\\[" + roomName + "\\]" + "\\[" + "(.+)" + "\\]" + "Name")
+	deviceNameString, err := utility.GetNameString(regDeviceName, simplString)
 	if err != nil {
 		return nil, err
 	}
 
-	rawDevices := r.FindAllString(simplString, -1)
-
-	var devices []string
-
-	for _, device := range rawDevices {
-
-		if strings.Contains(device, allRoomLigths) || strings.Contains(device, dimmer) {
-			continue
-		}
-		devices = append(devices, device)
+	signals, err := utility.GetSignals(roomName, simplString)
+	if err != nil {
+		return nil, err
 	}
-
-	fmt.Println(devices)
 
 	return room, nil
 }
@@ -119,34 +97,4 @@ func (r *Room) GetLightName() string {
 
 func (r *Room) GetShadeName() string {
 	return r.shades.name
-}
-
-func getName(IONumber string, simplString string) (string, error) {
-
-	r, err := regexp.Compile("P" + IONumber + "=" + regAnyLetter + regAnySymbolAnyTime + "\\n")
-	if err != nil {
-		return "", err
-	}
-
-	return r.FindString(simplString), nil
-}
-
-func getNameString(reg string, simplString string) (string, error) {
-
-	var nameString string
-	modif := ""
-
-	for {
-		r, err := regexp.Compile(reg + modif)
-		if err != nil {
-			return "", err
-		}
-		nameString = r.FindString(simplString)
-		if strings.Contains(nameString, "]") {
-			break
-		}
-		modif = modif + regAnySymbolAnyTimeN
-	}
-
-	return nameString, nil
 }
