@@ -12,8 +12,13 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ShiryaevAnton/d3mapping/config"
 	"github.com/ShiryaevAnton/d3mapping/d3map"
-	"github.com/ShiryaevAnton/d3mapping/room"
 	"github.com/pelletier/go-toml"
+)
+
+const (
+	search = "s"
+	pull   = "p"
+	all    = "all"
 )
 
 var simplPath string
@@ -44,6 +49,14 @@ func main() {
 
 	logName := "log" + strconv.FormatInt(time.Now().UTC().Unix(), 10) + ".txt"
 
+	_, err := os.Stat("log")
+	if os.IsNotExist(err) {
+		err := os.Mkdir("log\\", 0666)
+		if err != nil {
+			log.Fatal("Folder does not exist.")
+		}
+	}
+
 	fLog, err := os.OpenFile("log\\"+logName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -53,6 +66,20 @@ func main() {
 	wrt := io.MultiWriter(os.Stdout, fLog)
 	log.SetOutput(wrt)
 
+	if mode == search {
+		Searching()
+	}
+	if mode == pull {
+		GetNames()
+	}
+	if mode == all {
+		GetNames()
+		Searching()
+	}
+
+}
+
+func Searching() {
 	f, err := excelize.OpenFile(configPath)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -63,16 +90,11 @@ func main() {
 		log.Fatalf("error opening file: %v", err)
 	}
 
-	fD3Simpl, err := os.ReadFile(d3Path)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-
 	simplPathNew := strings.ReplaceAll(simplPath, ".smw", "") + "_UPDATE.smw"
 
-	var d3List []d3map.D3List
+	var rooms []d3map.Room
 
-	log.Println("\nConfig file: " + strings.ReplaceAll(configPath, "./", "") + " contains:\n")
+	//log.Println("\nConfig file: " + strings.ReplaceAll(configPath, "./", "") + " contains:\n")
 
 	for i := c.SheetConfig.StartRow; true; i++ {
 
@@ -82,26 +104,24 @@ func main() {
 		}
 		light := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnLight+strconv.Itoa(i))
 		lightType := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnLightType+strconv.Itoa(i))
-		d3ListLight := d3map.NewD3List(room, i-c.SheetConfig.StartRow+1, light, lightType, "light")
-		d3List = append(d3List, d3ListLight)
+		roomLight := d3map.NewRoom(room, i-c.SheetConfig.StartRow+1, light, lightType, "light")
+		rooms = append(rooms, roomLight)
 
 		shade := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnShade+strconv.Itoa(i))
 		shadeType := f.GetCellValue(c.SheetConfig.SheetName, c.SheetConfig.ColomnShadeType+strconv.Itoa(i))
-		d3ListShade := d3map.NewD3List(room, i-c.SheetConfig.StartRow+1, shade, shadeType, "shade")
-		d3List = append(d3List, d3ListShade)
+		roomShade := d3map.NewRoom(room, i-c.SheetConfig.StartRow+1, shade, shadeType, "shade")
+		rooms = append(rooms, roomShade)
 
 	}
 
-	//log.Println(d3List)
+	//log.Println(rooms)
 
 	//log.Println("Start searching signals")
 
 	resultString := string(fSimpl)
-	d3string := string(fD3Simpl)
 	compliteMap := make(map[string]bool)
-
-	for _, d3 := range d3List {
-		for i, device := range d3.GetDevices() {
+	for _, room := range rooms {
+		for i, device := range room.GetDevices() {
 			if device.GetName() != "" {
 				for _, signal := range c.Signals {
 
@@ -115,7 +135,7 @@ func main() {
 						signalName = signal.OverrideCoreName
 					}
 
-					roomName := d3.GetRoomName()
+					roomName := room.GetName()
 					if signal.OverridePanelName != "" {
 						roomName = signal.OverridePanelName
 					}
@@ -140,9 +160,9 @@ func main() {
 						}
 					}
 
-					d3mapping := d3map.NewD3Map(
+					signalMap := d3map.NewSignalMap(
 						prefix,
-						d3.GetRoomNumber(),
+						room.GetNumber(),
 						signalName+signal.CoreSignalModif,
 						signalNumber,
 						signal.CoreSuffix,
@@ -150,28 +170,17 @@ func main() {
 						deviceName+signal.PanelSignalModif,
 						signal.PanelSuffix)
 
-					if compliteMap[d3mapping.String()] {
+					if compliteMap[signalMap.String()] {
 						continue
 					} else {
-						compliteMap[d3mapping.String()] = true
+						compliteMap[signalMap.String()] = true
 					}
 
-					resultString = Replace(resultString, d3mapping)
+					resultString = Replace(resultString, signalMap)
 				}
 			}
 		}
 	}
-
-	// roomNames, err := room.GetRoomName(d3string)
-	// if err != nil {
-	// 	log.Fatalf("error pulling room names: %v", err)
-	// }
-
-	// for _, roomName := range roomNames {
-	// 	room.GetRooms(roomName, d3string)
-	// }
-
-	room.GetRooms("Bedroom_1", d3string)
 
 	resultByte := []byte(resultString)
 
@@ -179,21 +188,57 @@ func main() {
 		log.Fatalf("error writting file: %v", err)
 	}
 
-	//log.Println("File: " + simplPathNew + " is created")
+	log.Println("File: " + simplPathNew + " is created")
+
 }
 
-func Replace(resultString string, d3mapping *d3map.D3map) string {
+func GetNames() {
+
+	f, err := excelize.OpenFile(configPath)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+
+	fD3Simpl, err := os.ReadFile(d3Path)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+
+	d3string := string(fD3Simpl)
+
+	rooms, err := d3map.GetRooms(d3string)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
+	i := c.SheetConfig.StartRow
+
+	for _, room := range rooms {
+		name := strings.ReplaceAll(room.GetName(), "_", " ")
+		f.SetCellStr(c.SheetConfig.SheetName, c.SheetConfig.ColomnRoom+strconv.Itoa(i), name)
+		f.SetCellStr(c.SheetConfig.SheetName, c.SheetConfig.ColomnLight+strconv.Itoa(i), room.GetLightString())
+		f.SetCellStr(c.SheetConfig.SheetName, c.SheetConfig.ColomnShade+strconv.Itoa(i), room.GetShadeString())
+		i++
+	}
+
+	err = f.Save()
+	if err != nil {
+		log.Fatalf("error saving file: %v", err)
+	}
+}
+
+func Replace(resultString string, signalMap *d3map.SignalMap) string {
 
 	var isSuccess bool
 	var err error
-	resultString, isSuccess, err = d3mapping.Replace(resultString)
+	resultString, isSuccess, err = signalMap.Replace(resultString)
 	if err != nil {
 		log.Fatalf("Searching error: %v", err)
 	}
 	if isSuccess {
-		log.Printf("SUCCESS: %v", d3mapping)
+		log.Printf("SUCCESS: %v", signalMap)
 	} else {
-		log.Printf("FAIL: %v", d3mapping)
+		log.Printf("FAIL: %v", signalMap)
 	}
 
 	return resultString

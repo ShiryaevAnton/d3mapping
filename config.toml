@@ -12,7 +12,7 @@
     prefix	= "ROOM"
 	name = "PL_"
 
-[PanelRoomName]
+[[PanelRoomName]]
     prefix	= "Room"
 	name = "Name"
 
@@ -64,18 +64,18 @@
 # 	panel_signal_modif = ""
 # 	core_suffix = "RAISE"
 # 	panel_suffix = "Raise"
-# [[Signals]]
-# 	override_room_prefix = ""
-# 	override_core_name = ""
-# 	override_panel_name = ""
-# 	override_device_name = ""
-# 	room_level_signal = 0
-# 	system_type = "light"
-# 	device_type = "D"
-# 	core_signal_modif = "LIGHT"
-# 	panel_signal_modif = ""
-# 	core_suffix = "DIM"
-# 	panel_suffix = "Lower"
+[[Signals]]
+	override_room_prefix = ""
+	override_core_name = ""
+	override_panel_name = ""
+	override_device_name = ""
+	room_level_signal = 0
+	system_type = "light"
+	device_type = "D"
+	core_signal_modif = "LIGHT"
+	panel_signal_modif = ""
+	core_suffix = "DIM"
+	panel_suffix = "Lower"
 # [[Signals]]
 # 	override_room_prefix = ""
 # 	override_core_name = ""
